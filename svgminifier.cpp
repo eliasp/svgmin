@@ -245,8 +245,12 @@ void SvgMinifier::run()
             break;
 
         case QXmlStreamReader::Characters:
-            if (!skipElement.top())
-                out->writeCharacters(xml->text().toString());
+            if (!skipElement.top()) {
+                if (xml->isCDATA())
+                    out->writeCDATA(xml->text().toString());
+                else
+                    out->writeCharacters(xml->text().toString());
+            }
             break;
 
         case QXmlStreamReader::ProcessingInstruction:
