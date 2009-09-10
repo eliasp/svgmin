@@ -35,21 +35,21 @@ void showHelp()
     std::cout << "svgmin [options] input-file [output-file]" << std::endl << std::endl;
     std::cout << "Options:" << std::endl << std::endl;
     std::cout <<  "--auto-format             Indents and add line breaks in the output" << std::endl;
-    std::cout <<  "--surpress-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
-    std::cout <<  "--surpress-metadata       Remove all metadata" << std::endl;
-    std::cout <<  "--surpress-id=foo         Remove all id attributes (of drawing nodes) which start with 'foo'" << std::endl;
+    std::cout <<  "--remove-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
+    std::cout <<  "--remove-metadata       Remove all metadata" << std::endl;
+    std::cout <<  "--remove-id=foo         Remove all id attributes (of drawing nodes) which start with 'foo'" << std::endl;
     std::cout << std::endl;
     std::cout << "Option --aggressive is a convenient shorthand for:" << std::endl << std::endl;
-    std::cout <<  "    --surpress-metadata" << std::endl;
-    std::cout <<  "    --surpress-prefix=sodipodi" << std::endl;
-    std::cout <<  "    --surpress-prefix=inkscape" << std::endl;
-    std::cout <<  "    --surpress-id=circle" << std::endl;
-    std::cout <<  "    --surpress-id=g" << std::endl;
-    std::cout <<  "    --surpress-id=path" << std::endl;
-    std::cout <<  "    --surpress-id=polygon" << std::endl;
-    std::cout <<  "    --surpress-id=polyline" << std::endl;
-    std::cout <<  "    --surpress-id=rect" << std::endl;
-    std::cout <<  "    --surpress-id=text" << std::endl;
+    std::cout <<  "    --remove-metadata" << std::endl;
+    std::cout <<  "    --remove-prefix=sodipodi" << std::endl;
+    std::cout <<  "    --remove-prefix=inkscape" << std::endl;
+    std::cout <<  "    --remove-id=circle" << std::endl;
+    std::cout <<  "    --remove-id=g" << std::endl;
+    std::cout <<  "    --remove-id=path" << std::endl;
+    std::cout <<  "    --remove-id=polygon" << std::endl;
+    std::cout <<  "    --remove-id=polyline" << std::endl;
+    std::cout <<  "    --remove-id=rect" << std::endl;
+    std::cout <<  "    --remove-id=text" << std::endl;
     std::cout << std::endl;
 }
 
@@ -88,12 +88,12 @@ int main(int argc, char **argv)
             }
             if (arg == "-auto-format")
                 minifier.setAutoFormat(true);
-            if (arg == "-surpress-metadata")
+            if (arg == "-remove-metadata")
                 minifier.addTagExclude("metadata");
-            QString check = "-surpress-prefix=";
+            QString check = "-remove-prefix=";
             if (arg.startsWith(check))
                 minifier.addPrefixExclude(arg.mid(check.length(), arg.length()));
-            check = "-surpress-id=";
+            check = "-remove-id=";
             if (arg.startsWith(check))
                 minifier.addIdExclude(arg.mid(check.length(), arg.length()));
         } else {
