@@ -36,6 +36,7 @@ public:
     void setAutoFormat(bool format);
     void addTagExclude(const QString &tag);
     void addPrefixExclude(const QString &prefix);
+    void addIdExclude(const QString &id);
     void run();
 
 private:

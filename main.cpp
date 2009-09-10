@@ -37,6 +37,7 @@ void showHelp()
     std::cout <<  "--auto-format             Indents and add line breaks in the output" << std::endl;
     std::cout <<  "--surpress-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
     std::cout <<  "--surpress-metadata       Remove all metadata" << std::endl;
+    std::cout <<  "--surpress-id=foo         Remove all id attributes which start with 'foo'" << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -67,6 +68,9 @@ int main(int argc, char **argv)
             QString check = "-surpress-prefix=";
             if (arg.startsWith(check))
                 minifier.addPrefixExclude(arg.mid(check.length(), arg.length()));
+            check = "-surpress-id=";
+            if (arg.startsWith(check))
+                minifier.addIdExclude(arg.mid(check.length(), arg.length()));
         } else {
             if (inputFile.isEmpty())
                 inputFile = arg;
