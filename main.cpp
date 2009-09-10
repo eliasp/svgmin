@@ -33,11 +33,24 @@ void showHelp()
 {
     std::cout << "Usage:" << std::endl << std::endl;
     std::cout << "svgmin [options] input-file [output-file]" << std::endl << std::endl;
-    std::cout << "Options" << std::endl << std::endl;
+    std::cout << "Options:" << std::endl << std::endl;
     std::cout <<  "--auto-format             Indents and add line breaks in the output" << std::endl;
     std::cout <<  "--surpress-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
     std::cout <<  "--surpress-metadata       Remove all metadata" << std::endl;
     std::cout <<  "--surpress-id=foo         Remove all id attributes which start with 'foo'" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Option --aggressive is a convenient shorthand for:" << std::endl << std::endl;
+    std::cout <<  "    --surpress-metadata" << std::endl;
+    std::cout <<  "    --surpress-prefix=sodipodi" << std::endl;
+    std::cout <<  "    --surpress-prefix=inkscape" << std::endl;
+    std::cout <<  "    --surpress-id=circle" << std::endl;
+    std::cout <<  "    --surpress-id=g" << std::endl;
+    std::cout <<  "    --surpress-id=path" << std::endl;
+    std::cout <<  "    --surpress-id=polyline" << std::endl;
+    std::cout <<  "    --surpress-id=rect" << std::endl;
+    std::cout <<  "    --surpress-id=stop" << std::endl;
+    std::cout <<  "    --surpress-id=text" << std::endl;
+    std::cout << std::endl;
 }
 
 int main(int argc, char **argv)
@@ -60,6 +73,18 @@ int main(int argc, char **argv)
             if (arg == "h" || arg == "-help") {
                 showHelp();
                 return 0;
+            }
+            if (arg == "-aggressive") {
+                minifier.addTagExclude("metadata");
+                minifier.addPrefixExclude("sodipodi");
+                minifier.addPrefixExclude("inkscape");
+                minifier.addIdExclude("circle");
+                minifier.addIdExclude("g");
+                minifier.addIdExclude("path");
+                minifier.addIdExclude("polyline");
+                minifier.addIdExclude("rect");
+                minifier.addIdExclude("stop");
+                minifier.addIdExclude("text");
             }
             if (arg == "-auto-format")
                 minifier.setAutoFormat(true);
