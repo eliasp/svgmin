@@ -80,7 +80,7 @@ static bool listContains(const QStringList &list, const QStringRef &str)
         return false;
     QString check = str.toString();
     foreach (const QString &s, list)
-        if (s.startsWith(check))
+        if (check.startsWith(s))
             return true;
     return false;
 }
