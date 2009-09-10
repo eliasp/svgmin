@@ -37,7 +37,7 @@ void showHelp()
     std::cout <<  "--auto-format             Indents and add line breaks in the output" << std::endl;
     std::cout <<  "--surpress-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
     std::cout <<  "--surpress-metadata       Remove all metadata" << std::endl;
-    std::cout <<  "--surpress-id=foo         Remove all id attributes which start with 'foo'" << std::endl;
+    std::cout <<  "--surpress-id=foo         Remove all id attributes (of drawing nodes) which start with 'foo'" << std::endl;
     std::cout << std::endl;
     std::cout << "Option --aggressive is a convenient shorthand for:" << std::endl << std::endl;
     std::cout <<  "    --surpress-metadata" << std::endl;
@@ -46,9 +46,9 @@ void showHelp()
     std::cout <<  "    --surpress-id=circle" << std::endl;
     std::cout <<  "    --surpress-id=g" << std::endl;
     std::cout <<  "    --surpress-id=path" << std::endl;
+    std::cout <<  "    --surpress-id=polygon" << std::endl;
     std::cout <<  "    --surpress-id=polyline" << std::endl;
     std::cout <<  "    --surpress-id=rect" << std::endl;
-    std::cout <<  "    --surpress-id=stop" << std::endl;
     std::cout <<  "    --surpress-id=text" << std::endl;
     std::cout << std::endl;
 }
@@ -81,9 +81,9 @@ int main(int argc, char **argv)
                 minifier.addIdExclude("circle");
                 minifier.addIdExclude("g");
                 minifier.addIdExclude("path");
+                minifier.addIdExclude("polygon");
                 minifier.addIdExclude("polyline");
                 minifier.addIdExclude("rect");
-                minifier.addIdExclude("stop");
                 minifier.addIdExclude("text");
             }
             if (arg == "-auto-format")

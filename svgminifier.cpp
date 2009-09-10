@@ -158,6 +158,27 @@ static QXmlStreamAttributes mergedStyle(const QXmlStreamAttributes &attributes)
     return result;
 }
 
+static bool isDrawingNode(const QStringRef &str)
+{
+    if (str == QLatin1String("linearGradient"))
+        return false;
+    if (str == QLatin1String("path"))
+        return true;
+    if (str == QLatin1String("text"))
+        return true;
+    if (str == QLatin1String("g"))
+        return true;
+    if (str == QLatin1String("rect"))
+        return true;
+    if (str == QLatin1String("circle"))
+        return true;
+    if (str == QLatin1String("polygon"))
+        return true;
+    if (str == QLatin1String("polyline"))
+        return true;
+    return false;
+}
+
 void SvgMinifier::run()
 {
     QFile file;
@@ -202,12 +223,13 @@ void SvgMinifier::run()
                 skip = skip || d->excludedTags.contains(xml->name().toString());
                 skipElement.push(skip);
                 if (!skip) {
-                    out->writeStartElement(xml->qualifiedName().toString());
+                    const QStringRef &tag = xml->qualifiedName();
+                    out->writeStartElement(tag.toString());
                     QXmlStreamAttributes attr = mergedStyle(xml->attributes());
                     foreach (const QXmlStreamAttribute &a, attr) {
                         if (listContains(d->excludedPrefixes, a.prefix()))
                             continue;
-                        if (a.qualifiedName() == "id")
+                        if (a.qualifiedName() == "id" && isDrawingNode(tag))
                             if (listContains(d->excludedId, a.value()))
                                 continue;
                         out->writeAttribute(a);
