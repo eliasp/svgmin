@@ -36,6 +36,7 @@ public:
     bool autoFormat;
     QStringList excludedTags;
     QStringList excludedPrefixes;
+    QStringList excludedId;
 };
 
 SvgMinifier::SvgMinifier()
@@ -72,6 +73,11 @@ void SvgMinifier::addTagExclude(const QString &tag)
 void SvgMinifier::addPrefixExclude(const QString &prefix)
 {
     d->excludedPrefixes += prefix;
+}
+
+void SvgMinifier::addIdExclude(const QString &id)
+{
+    d->excludedId += id;
 }
 
 static bool listContains(const QStringList &list, const QStringRef &str)
@@ -198,9 +204,14 @@ void SvgMinifier::run()
                 if (!skip) {
                     out->writeStartElement(xml->qualifiedName().toString());
                     QXmlStreamAttributes attr = mergedStyle(xml->attributes());
-                    foreach (const QXmlStreamAttribute &a, attr)
-                        if (!listContains(d->excludedPrefixes, a.prefix()))
-                                out->writeAttribute(a);
+                    foreach (const QXmlStreamAttribute &a, attr) {
+                        if (listContains(d->excludedPrefixes, a.prefix()))
+                            continue;
+                        if (a.qualifiedName() == "id")
+                            if (listContains(d->excludedId, a.value()))
+                                continue;
+                        out->writeAttribute(a);
+                    }
                 }
             }
             break;
