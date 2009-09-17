@@ -33,7 +33,10 @@ class SvgMinifier::Private
 public:
     QString inFile;
     QString outFile;
-    bool autoFormat;
+    bool convertStyle;
+    bool simplifyStyle;
+    bool keepMetadata;
+    bool keepEditorData;
     QStringList excludedTags;
     QStringList excludedPrefixes;
     QStringList excludedId;
@@ -42,7 +45,18 @@ public:
 SvgMinifier::SvgMinifier()
 {
     d = new Private;
-    d->autoFormat = false;
+    d->convertStyle = true;
+    d->simplifyStyle = true;
+    d->keepMetadata = true;
+    d->keepEditorData = false;
+
+    d->excludedId << "g";
+    d->excludedId << "circle";
+    d->excludedId << "path";
+    d->excludedId << "polygon";
+    d->excludedId << "polyline";
+    d->excludedId << "rect";
+    d->excludedId << "text";
 }
 
 SvgMinifier::~SvgMinifier()
@@ -60,24 +74,35 @@ void SvgMinifier::setOutputFile(const QString &out)
     d->outFile = out;
 }
 
-void SvgMinifier::setAutoFormat(bool format)
+void SvgMinifier::setConvertStyle(bool convert)
 {
-    d->autoFormat = format;
+    d->convertStyle = convert;
 }
 
-void SvgMinifier::addTagExclude(const QString &tag)
+void SvgMinifier::setSimplifyStyle(bool simplify)
 {
-    d->excludedTags += tag;
+    d->simplifyStyle = simplify;
 }
 
-void SvgMinifier::addPrefixExclude(const QString &prefix)
+void SvgMinifier::setKeepMetadata(bool keep)
 {
-    d->excludedPrefixes += prefix;
+    d->keepMetadata = keep;
 }
 
-void SvgMinifier::addIdExclude(const QString &id)
+void SvgMinifier::setKeepEditorData(bool keep)
 {
-    d->excludedId += id;
+    d->keepEditorData = keep;
+}
+
+void SvgMinifier::removeId(const QString &id)
+{
+    if (!d->excludedId.contains(id))
+        d->excludedId += id;
+}
+
+void SvgMinifier::keepId(const QString &id)
+{
+    d->excludedId.removeAll(id);
 }
 
 static bool listContains(const QStringList &list, const QStringRef &str)
@@ -197,11 +222,24 @@ void SvgMinifier::run()
     QXmlStreamReader *xml = new QXmlStreamReader(&file);
     xml->setNamespaceProcessing(false);
     QXmlStreamWriter *out = new QXmlStreamWriter(&result);
-    out->setAutoFormatting(d->autoFormat);
+    out->setAutoFormatting(true);
 
     bool skip;
     QStack<bool> skipElement;
     skipElement.push(false);
+
+    if (d->keepMetadata)
+        d->excludedTags.removeAll("metadata");
+    else
+        d->excludedTags.append("metadata");
+
+    if (d->keepEditorData) {
+        d->excludedPrefixes.removeAll("inkscape");
+        d->excludedPrefixes.removeAll("sodipodi");
+    } else {
+        d->excludedPrefixes.append("inkscape");
+        d->excludedPrefixes.append("sodipodi");
+    }
 
     while (!xml->atEnd()) {
         switch (xml->readNext()) {
@@ -225,7 +263,11 @@ void SvgMinifier::run()
                 if (!skip) {
                     const QStringRef &tag = xml->qualifiedName();
                     out->writeStartElement(tag.toString());
-                    QXmlStreamAttributes attr = mergedStyle(xml->attributes());
+                    QXmlStreamAttributes attr;
+                    if (d->convertStyle)
+                        attr = mergedStyle(xml->attributes());
+                    else
+                        attr = xml->attributes();
                     foreach (const QXmlStreamAttribute &a, attr) {
                         if (listContains(d->excludedPrefixes, a.prefix()))
                             continue;

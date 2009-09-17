@@ -33,10 +33,14 @@ public:
     ~SvgMinifier();
     void setInputFile(const QString &in);
     void setOutputFile(const QString &out);
-    void setAutoFormat(bool format);
-    void addTagExclude(const QString &tag);
-    void addPrefixExclude(const QString &prefix);
-    void addIdExclude(const QString &id);
+
+    void setConvertStyle(bool convert);
+    void setSimplifyStyle(bool simplify);
+    void setKeepMetadata(bool keep);
+    void setKeepEditorData(bool keep);
+
+    void removeId(const QString &id);
+    void keepId(const QString &id);
     void run();
 
 private:

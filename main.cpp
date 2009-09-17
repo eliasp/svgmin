@@ -33,29 +33,30 @@ void showHelp()
 {
     std::cout << "Usage:" << std::endl << std::endl;
     std::cout << "svgmin [options] input-file [output-file]" << std::endl << std::endl;
-    std::cout << "Options:" << std::endl << std::endl;
-    std::cout <<  "--auto-format             Indents and add line breaks in the output" << std::endl;
-    std::cout <<  "--remove-prefix=foobar  Remove all tags and attributes which have 'foobar' prefix" << std::endl;
-    std::cout <<  "--remove-metadata       Remove all metadata" << std::endl;
-    std::cout <<  "--remove-id=foo         Remove all id attributes (of drawing nodes) which start with 'foo'" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Option --aggressive is a convenient shorthand for:" << std::endl << std::endl;
-    std::cout <<  "    --remove-metadata" << std::endl;
-    std::cout <<  "    --remove-prefix=sodipodi" << std::endl;
-    std::cout <<  "    --remove-prefix=inkscape" << std::endl;
-    std::cout <<  "    --remove-id=circle" << std::endl;
-    std::cout <<  "    --remove-id=g" << std::endl;
-    std::cout <<  "    --remove-id=path" << std::endl;
-    std::cout <<  "    --remove-id=polygon" << std::endl;
-    std::cout <<  "    --remove-id=polyline" << std::endl;
-    std::cout <<  "    --remove-id=rect" << std::endl;
-    std::cout <<  "    --remove-id=text" << std::endl;
+    std::cout << "Options (* marks the default):" << std::endl;
+    std::cout <<  std::endl;
+    std::cout <<  "--style-to-xml=yes [*]    Converts style properties into XML attributes" << std::endl;
+    std::cout <<  "--style-to-xml=no         Keeps all style properties" << std::endl;
+    std::cout <<  std::endl;
+    std::cout <<  "--remove-metadata         Removes all metadata" << std::endl;
+    std::cout <<  "--keep-metadata [*]       Keeps any metadata" << std::endl;
+    std::cout <<  std::endl;
+    std::cout <<  "--remove-editor-data [*]  Removes all Inkscape/Sodipodi data" << std::endl;
+    std::cout <<  "--keep-editor-data        Keeps all Inkscape/Sodipodi data" << std::endl;
+    std::cout <<  std::endl;
+    std::cout <<  "--remove-id=foo           Removes all ids which start with 'foo'" << std::endl;
+    std::cout <<  "--keep-id=foo             Keeps all ids which start with 'foo'" << std::endl;
+    std::cout <<  std::endl;
+    std::cout <<  "The default is to remove the following ids:" << std::endl;
+    std::cout <<  "g, circle, path, polygon, polyline, rect, text" << std::endl;
+    std::cout <<  "To override any of these, use the --keep-id option." << std::endl;
     std::cout << std::endl;
 }
 
 int main(int argc, char **argv)
 {
     if (argc < 2) {
+        showHelp();
         return 0;
     }
 
@@ -74,28 +75,32 @@ int main(int argc, char **argv)
                 showHelp();
                 return 0;
             }
-            if (arg == "-aggressive") {
-                minifier.addTagExclude("metadata");
-                minifier.addPrefixExclude("sodipodi");
-                minifier.addPrefixExclude("inkscape");
-                minifier.addIdExclude("circle");
-                minifier.addIdExclude("g");
-                minifier.addIdExclude("path");
-                minifier.addIdExclude("polygon");
-                minifier.addIdExclude("polyline");
-                minifier.addIdExclude("rect");
-                minifier.addIdExclude("text");
-            }
-            if (arg == "-auto-format")
-                minifier.setAutoFormat(true);
+
+            if (arg == "-style-to-xml=yes")
+                minifier.setConvertStyle(true);
+            if (arg == "-style-to-xml=no")
+                minifier.setConvertStyle(false);
+
+            if (arg == "-simplify-style=yes")
+                minifier.setSimplifyStyle(true);
+            if (arg == "-simplify-style=no")
+                minifier.setSimplifyStyle(false);
+
+            if (arg == "-keep-metadata")
+                minifier.setKeepMetadata(true);
             if (arg == "-remove-metadata")
-                minifier.addTagExclude("metadata");
-            QString check = "-remove-prefix=";
-            if (arg.startsWith(check))
-                minifier.addPrefixExclude(arg.mid(check.length(), arg.length()));
-            check = "-remove-id=";
-            if (arg.startsWith(check))
-                minifier.addIdExclude(arg.mid(check.length(), arg.length()));
+                minifier.setKeepMetadata(false);
+
+            if (arg == "-keep-editor-data")
+                minifier.setKeepEditorData(true);
+            if (arg == "-remove-editor-data")
+                minifier.setKeepEditorData(false);
+
+            if (arg.startsWith("-remove-id="))
+                minifier.removeId(arg.mid(11)); // "-remove-id="
+            if (arg.startsWith("-keep-id="))
+                minifier.keepId(arg.mid(9)); // "-keep-id="
+
         } else {
             if (inputFile.isEmpty())
                 inputFile = arg;
