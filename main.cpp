@@ -32,7 +32,7 @@
 void showHelp()
 {
     std::cout << "Usage:" << std::endl << std::endl;
-    std::cout << "svgmin [options] input-file [output-file]" << std::endl << std::endl;
+    std::cout << "svgmin [options] [input-file [output-file]]" << std::endl << std::endl;
     std::cout << "Options (* marks the default):" << std::endl;
     std::cout <<  std::endl;
     std::cout <<  "--style-to-xml=yes [*]    Converts style properties into XML attributes" << std::endl;
@@ -55,11 +55,6 @@ void showHelp()
 
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        showHelp();
-        return 0;
-    }
-
     QCoreApplication app(argc, argv);
 
     QString inputFile;
@@ -109,9 +104,31 @@ int main(int argc, char **argv)
         }
     }
 
-    minifier.setInputFile(inputFile);
-    minifier.setOutputFile(outputFile);
+    inputFile = inputFile.trimmed();
+    outputFile = outputFile.trimmed();
+
+    QFile inputDevice;
+    QFile outputDevice;
+
+    if (!inputFile.isEmpty()) {
+        inputDevice.setFileName(inputFile);
+        inputDevice.open(QFile::ReadOnly);
+        minifier.setInputDevice(&inputDevice);
+    }
+
+    if (!outputFile.isEmpty()) {
+        outputDevice.setFileName(outputFile);
+        outputDevice.open(QFile::WriteOnly);
+        minifier.setOutputDevice(&outputDevice);
+    }
+
     minifier.run();
+
+    if (inputDevice.isOpen())
+        inputDevice.close();
+
+    if (outputDevice.isOpen())
+        outputDevice.close();
 
     return 0;
 }

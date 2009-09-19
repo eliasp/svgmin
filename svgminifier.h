@@ -22,6 +22,7 @@
   THE SOFTWARE.
 */
 
+#include <QIODevice>
 #include <QString>
 
 #include "qcssparser_p.h"
@@ -31,8 +32,9 @@ class SvgMinifier
 public:
     SvgMinifier();
     ~SvgMinifier();
-    void setInputFile(const QString &in);
-    void setOutputFile(const QString &out);
+
+    void setInputDevice(QIODevice *device);
+    void setOutputDevice(QIODevice *device);
 
     void setConvertStyle(bool convert);
     void setSimplifyStyle(bool simplify);

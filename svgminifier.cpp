@@ -31,8 +31,8 @@
 class SvgMinifier::Private
 {
 public:
-    QString inFile;
-    QString outFile;
+    QIODevice *inputDevice;
+    QIODevice *outputDevice;
     bool convertStyle;
     bool simplifyStyle;
     bool keepMetadata;
@@ -45,6 +45,10 @@ public:
 SvgMinifier::SvgMinifier()
 {
     d = new Private;
+
+    d->inputDevice = 0;
+    d->outputDevice = 0;
+
     d->convertStyle = true;
     d->simplifyStyle = true;
     d->keepMetadata = true;
@@ -77,14 +81,14 @@ SvgMinifier::~SvgMinifier()
     delete d;
 }
 
-void SvgMinifier::setInputFile(const QString &in)
+void SvgMinifier::setInputDevice(QIODevice *device)
 {
-    d->inFile = in;
+    d->inputDevice = device;
 }
 
-void SvgMinifier::setOutputFile(const QString &out)
+void SvgMinifier::setOutputDevice(QIODevice *device)
 {
-    d->outFile = out;
+    d->outputDevice = device;
 }
 
 void SvgMinifier::setConvertStyle(bool convert)
@@ -228,22 +232,23 @@ static bool isDrawingNode(const QStringRef &str)
 
 void SvgMinifier::run()
 {
-    QFile file;
-    file.setFileName(d->inFile);
-    if (!file.open(QFile::ReadOnly))
-        return;
-
-    QFile result;
-    if (!d->outFile.isEmpty()) {
-        result.setFileName(d->outFile);
-        result.open(QFile::WriteOnly);
-    } else {
-        result.open(stdout, QFile::WriteOnly);
+    // fall back to standard input
+    QFile standardInput;
+    if (!d->inputDevice) {
+        standardInput.open(stdin, QFile::ReadOnly);
+        d->inputDevice = &standardInput;
     }
 
-    QXmlStreamReader *xml = new QXmlStreamReader(&file);
+    // fall back to standard output
+    QFile standardOutput;
+    if (!d->outputDevice) {
+        standardOutput.open(stdout, QFile::WriteOnly);
+        d->outputDevice = &standardOutput;
+    }
+
+    QXmlStreamReader *xml = new QXmlStreamReader(d->inputDevice);
     xml->setNamespaceProcessing(false);
-    QXmlStreamWriter *out = new QXmlStreamWriter(&result);
+    QXmlStreamWriter *out = new QXmlStreamWriter(d->outputDevice);
     out->setAutoFormatting(true);
 
     bool skip;
@@ -327,8 +332,11 @@ void SvgMinifier::run()
         }
     }
 
-    file.close();
-    result.close();
+    if (standardInput.isOpen())
+        standardInput.close();
+
+    if (standardOutput.isOpen())
+        standardOutput.close();
 }
 
 
