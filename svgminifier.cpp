@@ -24,7 +24,12 @@
 
 #include "svgminifier.h"
 
-#include <QtCore>
+#include <QtCore/QIODevice>
+#include <QtCore/QFile>
+#include <QtCore/QStack>
+#include <QtCore/QStringList>
+#include <QtCore/QXmlStreamReader>
+#include <QtCore/QXmlStreamWriter>
 
 #include "qcssparser_p.h"
 

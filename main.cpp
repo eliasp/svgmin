@@ -23,7 +23,9 @@
 */
 
 
-#include <QtCore>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QFile>
+#include <QtCore/QString>
 
 #include <iostream>
 
