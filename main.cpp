@@ -41,8 +41,8 @@ void showHelp()
     std::cout <<  "--remove-metadata         Removes all metadata" << std::endl;
     std::cout <<  "--keep-metadata [*]       Keeps any metadata" << std::endl;
     std::cout <<  std::endl;
-    std::cout <<  "--remove-editor-data [*]  Removes all Inkscape/Sodipodi data" << std::endl;
-    std::cout <<  "--keep-editor-data        Keeps all Inkscape/Sodipodi data" << std::endl;
+    std::cout <<  "--remove-editor-data [*]  Removes all Inkscape/Sodipodi/Adobe data" << std::endl;
+    std::cout <<  "--keep-editor-data        Keeps all Inkscape/Sodipodi/Adobe data" << std::endl;
     std::cout <<  std::endl;
     std::cout <<  "--remove-id=foo           Removes all ids which start with 'foo'" << std::endl;
     std::cout <<  "--keep-id=foo             Keeps all ids which start with 'foo'" << std::endl;

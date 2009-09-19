@@ -37,8 +37,8 @@ public:
     bool simplifyStyle;
     bool keepMetadata;
     bool keepEditorData;
-    QStringList excludedTags;
-    QStringList excludedPrefixes;
+    QStringList editorNamespaces;
+    QStringList editorPrefixes;
     QStringList excludedId;
 };
 
@@ -49,6 +49,19 @@ SvgMinifier::SvgMinifier()
     d->simplifyStyle = true;
     d->keepMetadata = true;
     d->keepEditorData = false;
+
+    d->editorNamespaces << "http://www.inkscape.org/namespaces/inkscape";
+    d->editorNamespaces << "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd";
+    d->editorNamespaces << "http://ns.adobe.com/AdobeIllustrator/10.0/";
+    d->editorNamespaces << "http://ns.adobe.com/Graphs/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/AdobeSVGViewerExtensions/3.0/";
+    d->editorNamespaces << "http://ns.adobe.com/Variables/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/SaveForWeb/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/Extensibility/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/Flows/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/ImageReplacement/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/GenericCustomNamespace/1.0/";
+    d->editorNamespaces << "http://ns.adobe.com/XPath/1.0/";
 
     d->excludedId << "g";
     d->excludedId << "circle";
@@ -161,6 +174,20 @@ static QXmlStreamAttributes parseStyle(const QStringRef &styleRef)
     return attributes;
 }
 
+// convenient function to remove an attribute given the name
+static QXmlStreamAttributes attrRemoved(const QXmlStreamAttributes &attributes,
+                                        const QString &name)
+{
+    QXmlStreamAttributes result;
+    result.reserve(qMax(1, attributes.count() - 1));
+
+    foreach (const QXmlStreamAttribute &attr, attributes)
+        if (attr.name() != name)
+            result += attr;
+
+    return result;
+}
+
 // take the value of the "style" attribute, parse it and then
 // merged the result with other XML attributes
 static QXmlStreamAttributes mergedStyle(const QXmlStreamAttributes &attributes)
@@ -168,12 +195,7 @@ static QXmlStreamAttributes mergedStyle(const QXmlStreamAttributes &attributes)
     if (!attributes.hasAttribute("style"))
         return attributes;
 
-    QXmlStreamAttributes result;
-    result.reserve(attributes.count());
-
-    foreach (const QXmlStreamAttribute &attr, attributes)
-        if (attr.name() != "style")
-            result += attr;
+    QXmlStreamAttributes result = attrRemoved(attributes, "style");
 
     QXmlStreamAttributes styles = parseStyle(attributes.value("style"));
     foreach (const QXmlStreamAttribute &attr, styles)
@@ -228,18 +250,7 @@ void SvgMinifier::run()
     QStack<bool> skipElement;
     skipElement.push(false);
 
-    if (d->keepMetadata)
-        d->excludedTags.removeAll("metadata");
-    else
-        d->excludedTags.append("metadata");
-
-    if (d->keepEditorData) {
-        d->excludedPrefixes.removeAll("inkscape");
-        d->excludedPrefixes.removeAll("sodipodi");
-    } else {
-        d->excludedPrefixes.append("inkscape");
-        d->excludedPrefixes.append("sodipodi");
-    }
+    QXmlStreamAttributes attr;
 
     while (!xml->atEnd()) {
         switch (xml->readNext()) {
@@ -257,19 +268,30 @@ void SvgMinifier::run()
             if (skipElement.top()) {
                 skipElement.push(true);
             } else {
-                skip = listContains(d->excludedPrefixes, xml->prefix());
-                skip = skip || d->excludedTags.contains(xml->name().toString());
+                attr = xml->attributes();
+
+                if (xml->name() == "svg" && !d->keepEditorData)
+                    foreach (const QXmlStreamAttribute &a, attr)
+                        if (d->editorNamespaces.contains(a.value().toString()))
+                            if (a.prefix() == "xmlns")
+                                d->editorPrefixes += a.name().toString();
+
+                if (d->editorPrefixes.count())
+                    foreach (QString ns, d->editorPrefixes)
+                        attr = attrRemoved(attr, ns);
+
+                skip = d->editorPrefixes.contains(xml->prefix().toString());
+                if (!skip && !d->keepMetadata)
+                    skip = xml->name() == "metadata";
+
                 skipElement.push(skip);
                 if (!skip) {
                     const QStringRef &tag = xml->qualifiedName();
                     out->writeStartElement(tag.toString());
-                    QXmlStreamAttributes attr;
                     if (d->convertStyle)
-                        attr = mergedStyle(xml->attributes());
-                    else
-                        attr = xml->attributes();
+                        attr = mergedStyle(attr);
                     foreach (const QXmlStreamAttribute &a, attr) {
-                        if (listContains(d->excludedPrefixes, a.prefix()))
+                        if (d->editorPrefixes.contains(a.prefix().toString()))
                             continue;
                         if (a.qualifiedName() == "id" && isDrawingNode(tag))
                             if (listContains(d->excludedId, a.value()))
